@@ -1,0 +1,39 @@
+{
+  "QryCnt": 0,
+  "RtnLst": [
+    {
+      "ac_id": 0,
+      "ac_level": "string",
+      "ac_name": "string",
+      "ac_nature_flag": "string",
+      "ac_no": "string",
+      "ac_seqn": 0,
+      "acct_class": "string",
+      "acct_type": "string",
+      "cancel_amt": 0,
+      "cancel_br_no": "string",
+      "cancel_date": 0,
+      "cancel_total_amt": 0,
+      "check_no": "string",
+      "cur_code": "string",
+      "cust_mgr_code": "string",
+      "cust_mgr_name": "string",
+      "cust_no": 7000000742,
+      "fund_type": "string",
+      "inner_ac_id": 0,
+      "mdm_code": "string",
+      "mdm_no": "string",
+      "mtr_date": 0,
+      "odtt_flag": "string",
+      "opn_amt": 0,
+      "opn_br_no": "string",
+      "opn_date": 0,
+      "opn_total_amt": 0,
+      "prdt_name": "string",
+      "prdt_no": "string",
+      "teller_no": "string",
+      "term_num": "string",
+      "tx_br_no": "string"
+    }
+  ]
+}

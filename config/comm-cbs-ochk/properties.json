@@ -1,0 +1,73 @@
+{
+  "IMAGE_NAME": "ms-notification-core",
+  "IMAGE_VERSION": "POM_VERSION",
+  "APPLICATION_NAME": "ms-notification-core",
+  "NAMESPACE": "comm-cbs-ochk",
+  "USE_SIDECAR": "false",
+  "APP_CONFMAP_NAME": "ms-notification-core",
+  "SUMMON_CONF_NAME": "ms-notification-core-summon-config",
+  "COUNTRY": "comm-cbs-ochk",
+  "PV_ENABLED": "false",
+  "MULTI_POM": "No",
+  "ROLLOUT_DEPLOYMENT": "false",
+  "SWAGGER_EXTN_URL": "/v3/api-docs",
+  "PROFILE_NAME": "all",
+  "COMMON_KRB5_CONF" : "true",
+  "SIT_MULTI": "true",
+  "UAT3_ACTIVE": "true",
+  "OPENSHIFT_CLUSTER": "CBS",
+  "sit": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "sit2": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "sit3": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "uat": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "uat2": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "uat3": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "dr": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "OPENSHIFT_CLUSTER": "CBSHK",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "prod1": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "OPENSHIFT_CLUSTER": "CBSHK",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  },
+  "prod2": {
+    "APP_CONFMAP_FILE": "application.properties",
+    "OPENSHIFT_CLUSTER": "CBSHK",
+    "ANNOTATE": "true",
+    "SUMMON_CONF_FILE": "secrets.yml",
+    "ROUTE_NAME": "notif-core-comm-ochk"
+  }
+}

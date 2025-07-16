@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+
+			<providers>
+				<timestamp/>
+				<pattern>
+					<pattern>
+						{
+						"x-correlation-id": "%X{x-correlation-id}",
+						"x-source-id": "%X{x-source-id}",
+						"x-source-country": "%X{x-source-country}",
+						"x-source-date-time": "%X{x-source-date-time}",
+						"logger": "%logger",
+						"level": "%level",
+						"thread": "%thread",
+						"message": "%msg"
+						}
+					</pattern>
+				</pattern>
+				<stackTrace>
+					<throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+						<rootCauseFirst>true</rootCauseFirst>
+					</throwableConverter>
+				</stackTrace>
+			</providers>
+
+		</encoder>
+	</appender>
+	<root level="${logging.level.root}">
+		<appender-ref ref="CONSOLE" />
+	</root>
+<!--	<logger name="org.apache.kafka.clients.producer.ProducerConfig" level="ERROR"/>-->
+</configuration>
