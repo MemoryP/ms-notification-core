@@ -1,6 +1,6 @@
-package com.ocbc.ms.notification.core.entity.req;
+package com.ocbc.ms.notification.core.entity.req.staff;
 
-import com.ocbc.ms.notification.core.entity.req.staff.StaffPayLoadDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,12 +12,11 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Builder
-public class EventMessageVO implements Serializable {
+public class StaffPayLoadDto implements Serializable {
 
     private static final long serialVersionUID = 10086L;
 
-    private String itemCode;
+    private JsonNode txtData;
 
-    private StaffPayLoadDto payLoad;
-
+    private StaffNotificationDataDto notificationData;
 }

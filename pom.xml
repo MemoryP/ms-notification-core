@@ -54,7 +54,6 @@
             **/TbMessageConditionDefServiceImpl.java,
             **/TbMessageConsumerRegServiceImpl.java,
             **/TbMessageProducerRegServiceImpl.java,
-            **/MessagePkgServiceImpl.java,
             **/Application.java,
         </sonar.exclusions>
         <sonar.coverage.exclusions>
@@ -78,7 +77,6 @@
             **/TbMessageConditionDefServiceImpl.java,
             **/TbMessageConsumerRegServiceImpl.java,
             **/TbMessageProducerRegServiceImpl.java,
-            **/MessagePkgServiceImpl.java,
             **/Application.java,
         </sonar.coverage.exclusions>
     </properties>

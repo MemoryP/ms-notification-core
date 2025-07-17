@@ -26,9 +26,7 @@ public class TbMessageProducerRegServiceImpl implements TbMessageProducerRegServ
         tbMessageProducerReg.setId(snowFlakeIdGenerator.generate())
                 .setConsumerId(producerRegDto.getConsumerId())
                 .setLegalEntity(producerRegDto.getLegalEntity())
-                .setEventTypeCode(producerRegDto.getEventTypeCode())
                 .setNotificationTopic(producerRegDto.getNotificationTopic())
-                .setNotificationType(producerRegDto.getNotificationType())
                 .setPayload(producerRegDto.getPayload())
                 .setCreatedTime(new Date())
                 .setUpdatedTime(new Date());

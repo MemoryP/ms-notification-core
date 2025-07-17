@@ -19,11 +19,11 @@ import java.util.Map;
 @Order(value = 2)
 public class TopicRunner implements ApplicationRunner {
 
-    @Value("${spring.kafka.producer.topicCustomer}")
+//    @Value("${spring.kafka.producer.topicCustomer}")
     private String topicCustomer;
     @Value("${spring.kafka.producer.topicStaff}")
     private String topicStaff;
-    @Value("${spring.kafka.producer.topicStaffTask}")
+//    @Value("${spring.kafka.producer.topicStaffTask}")
     private String topicStaffTask;
 
     @Getter

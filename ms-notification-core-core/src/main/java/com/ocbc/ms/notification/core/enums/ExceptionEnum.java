@@ -13,6 +13,7 @@ import java.util.Map;
  * @date 2020/8/10
  */
 public enum ExceptionEnum implements ErrorCode {
+    INVALID_JSON("1000", "Invalid JSON"),
     TEMPLATE_EXIST("10000", "Template already exists"),
 
     PARSE_JWT_FAILED("40001","Parse jwt failed."),

@@ -1,97 +1,128 @@
 package com.ocbc.ms.notification.core.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ocbc.ms.notification.core.entity.TbMessageConditionDef;
-import com.ocbc.ms.notification.core.entity.dto.PkgDto;
-import com.ocbc.ms.notification.core.entity.req.KafkaProducerDto;
+import com.ocbc.ms.cbs.core.context.LegalEntityContext;
+import com.ocbc.ms.cbs.core.exception.BizException;
+import com.ocbc.ms.notification.core.constant.Constants;
+import com.ocbc.ms.notification.core.entity.ServiceCodeTemplateEntity;
+import com.ocbc.ms.notification.core.entity.dto.ConsumerDto;
+import com.ocbc.ms.notification.core.entity.dto.CustomerMessageDto;
+import com.ocbc.ms.notification.core.entity.dto.ProducerRegDto;
+import com.ocbc.ms.notification.core.entity.req.EventMessageVO;
+import com.ocbc.ms.notification.core.entity.req.staff.StaffNotificationDataDto;
+import com.ocbc.ms.notification.core.entity.req.staff.StaffPayLoadDto;
+import com.ocbc.ms.notification.core.entity.req.staff.StaffProducerDto;
+import com.ocbc.ms.notification.core.entity.req.staff.StaffRecipientInfoDto;
+import com.ocbc.ms.notification.core.enums.ExceptionEnum;
+import com.ocbc.ms.notification.core.enums.NotificationTypeEnum;
+import com.ocbc.ms.notification.core.feign.DTO.FeignRequestHeader;
+import com.ocbc.ms.notification.core.feign.param.client.MsCustomerClient;
+import com.ocbc.ms.notification.core.producer.LocalKafkaProducer;
+import com.ocbc.ms.notification.core.repository.ServiceCodeTemplateRepository;
+import com.ocbc.ms.notification.core.runner.TopicRunner;
 import com.ocbc.ms.notification.core.service.MessagePkgService;
-import com.ocbc.ms.notification.core.spi.CifServiceSpi;
-import com.ocbc.ms.notification.core.spi.StaffServiceSpi;
+import com.ocbc.ms.notification.core.service.TbMessageConsumerRegService;
+import com.ocbc.ms.notification.core.service.TbMessageProducerRegService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MessagePkgServiceImpl implements MessagePkgService {
 
-    @Autowired
-    CifServiceSpi cifServiceSpi;
+    private final TbMessageConsumerRegService tbMessageConsumerRegServiceImpl;
 
-    @Autowired
-    StaffServiceSpi staffServiceSpi;
+    private final TbMessageProducerRegService tbMessageProducerRegServiceImpl;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    private final ServiceCodeTemplateRepository serviceCodeTemplateRepository;
+
+    private final LocalKafkaProducer localKafkaProducer;
+
+    private final ObjectMapper objectMapper;
+
+    private final MsCustomerClient msCustomerClient;
+
+    @Value("${spring.kafka.staff.producer.topic}")
+    private String staffTopic;
 
     @Override
-    public String init(PkgDto dto) {
+    public void sendMessage(String message, String topic){
         try{
-            String message = dto.getMessage();
-            TbMessageConditionDef tbMessageConditionDef = dto.getTbMessageConditionDef();
-            //message给payload赋值 循环payload
-//            JSONObject messageObject = JSONObject.parseObject(message);
-//            JSONObject payloadObject = JSONObject.parseObject(tbMessageConditionDef.getPayload());
-//            payloadObject.replaceAll((k, v) -> messageObject.getString(k));
+            ConsumerDto consumerDto = objectMapper.readValue(message, ConsumerDto.class);
+            LegalEntityContext.setLegalEntity(consumerDto.getLegalEntity());
+            String consumerId = tbMessageConsumerRegServiceImpl.saveTbMessageConsumerReg(consumerDto);
+            Optional<ServiceCodeTemplateEntity> serviceCodeTemplate = serviceCodeTemplateRepository.findById(consumerDto.getServiceCode());
 
-            JsonNode messageObject = objectMapper.readTree(message);
-            JsonNode payloadObject = objectMapper.readTree(tbMessageConditionDef.getPayload());
-
-            Iterator<Map.Entry<String, JsonNode>> fieldsB = messageObject.fields();
-            while (fieldsB.hasNext()) {
-                Map.Entry<String, JsonNode> fieldB = fieldsB.next();
-                String key = fieldB.getKey();
-
-                if (payloadObject.has(key)) {
-                    ((ObjectNode) payloadObject).set(key, fieldB.getValue());
-                }
+            if (!serviceCodeTemplate.isPresent()) {
+                log.warn("Service code template not found for code: {}", consumerDto.getServiceCode());
+                return;
             }
-            log.info(objectMapper.writeValueAsString(payloadObject));
 
-            //组装给kafka发送的消息体
-            KafkaProducerDto kafkaProducerDto = KafkaProducerDto.init();
-            kafkaProducerDto.setTopic(tbMessageConditionDef.getNotificationTopic());
-            kafkaProducerDto.getEventMessageVO().setType(tbMessageConditionDef.getEventTypeCode());
-            kafkaProducerDto.getEventMessageVO().getPayLoad().setNotificationData(payloadObject);
+            if(TopicRunner.getTopicName(Constants.TOPIC_STAFF).equals(topic)){
+                String alterTemplateCode = serviceCodeTemplate.get().getAlterTemplateCode();
+                if(StringUtils.isBlank(alterTemplateCode)){
+                    log.warn("Field 'ALTER_TEMPLATE_CODE' is empty in service template for code: {}", alterTemplateCode);
+                    return;
+                }
 
-            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserId("1234");
-            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserName("jack");
-            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setPhone("12345678901");
-            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setEmail("jack@ocbc.com");
+                // cif info
+                getCustomerInfo(consumerDto);
 
-//        if(TopicRunner.getTopicName(Constants.TOPIC_CUSTOMER).equals(tbMessageConditionDef.getNotificationTopic())){
-//            CustomerReqDto customerReqDto = new CustomerReqDto();
-//            customerReqDto.setCustomerId(messageObject.getString("userId"));
-//            CustomerRspDto customerRspDto = cifServiceSpi.queryCustomerInfo(customerReqDto);
-//
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserId(messageObject.getString("userId"));
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserName(customerRspDto.getContactProfile().getContactInfoList().get(0).getExtensionPhoneNo());
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setPhone(customerRspDto.getContactProfile().getContactInfoList().get(0).getExtensionPhoneNo());
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setEmail(customerRspDto.getContactProfile().getContactInfoList().get(0).getContactNo());
-//        }else{
-//            List<String> list = new ArrayList<>();
-//            list.add(messageObject.getString("userId"));
-//            StaffReqDto staffReqDto = new StaffReqDto();
-//            staffReqDto.setLanIdList(list);
-//            List<StaffRspDto> staffRspDtos = staffServiceSpi.queryStaffInfo(staffReqDto);
-//
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserId(staffRspDtos.get(0).getExternalId());
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setUserName(staffRspDtos.get(0).getExternalName());
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setPhone(staffRspDtos.get(0).getWorkPhone());
-//            kafkaProducerDto.getEventMessageVO().getPayLoad().getUser().setEmail(staffRspDtos.get(0).getEmail());
-//
-//        }
+                StaffProducerDto staffProducerMessage = buildStaffMessage(consumerDto, serviceCodeTemplate.get());
 
-            return objectMapper.writeValueAsString(kafkaProducerDto);
+                localKafkaProducer.sendMessage(staffTopic, objectMapper.writeValueAsString(staffProducerMessage));
+
+                ProducerRegDto producerRegDto = new ProducerRegDto();
+                producerRegDto.setConsumerId(consumerId)
+                        .setLegalEntity(consumerDto.getLegalEntity())
+                        .setNotificationTopic(topic)
+                        .setPayload(objectMapper.writeValueAsString(staffProducerMessage));
+                tbMessageProducerRegServiceImpl.saveTbMessageProducerReg(producerRegDto);
+            }
+            // customer topic
         }catch(Exception e){
-            log.error(e.getMessage());
+            log.info(e.toString());
+            throw new BizException(ExceptionEnum.INVALID_JSON);
         }
-        return null;
+    }
+
+    public StaffProducerDto buildStaffMessage(ConsumerDto consumerDto, ServiceCodeTemplateEntity template) {
+        return StaffProducerDto.builder()
+                .topic(staffTopic)
+                .eventMessageVO(EventMessageVO.builder()
+                        .itemCode(template.getAlterTemplateCode())
+                        .payLoad(StaffPayLoadDto.builder()
+                                .txtData(objectMapper.valueToTree(consumerDto))
+                                .notificationData(StaffNotificationDataDto.builder()
+                                        .channels(Arrays.asList(NotificationTypeEnum.EMAIL.name()))
+                                        .recipientInfo(StaffRecipientInfoDto.builder()
+                                                .email("")
+                                                .phone("")
+                                                .build())
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private void getCustomerInfo(ConsumerDto consumerDto) throws JsonProcessingException {
+        CustomerMessageDto customerMessageDto = objectMapper.readValue(consumerDto.getMessage(), CustomerMessageDto.class);
+        //获取cif信息
+        FeignRequestHeader header = new FeignRequestHeader();
+        header.setCorrelationId(consumerDto.getServiceCode());
+        header.setSourceId(consumerDto.getXSourceId());
+        header.setSourceCountry(consumerDto.getXSourceCountry());
+        header.setSourceDateTime(String.valueOf(new Date()));
+        header.setLegalEntity(consumerDto.getLegalEntity());
+        String encodedHeader = objectMapper.writeValueAsString(header);
+        msCustomerClient.getCustomerInfo(encodedHeader, customerMessageDto.getCustomerId());
     }
 
 }

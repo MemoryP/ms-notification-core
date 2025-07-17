@@ -18,9 +18,5 @@ public class LocalKafkaProducer {
 
     public void sendMessage(String topic, String message) {
             kafkaTemplate.send(topic, message);
-//                    .addCallback(
-//                            result -> log.info("Message sent: {}", result),
-//                            ex -> log.error("Send failed", ex)
-//                    );
     }
 }
