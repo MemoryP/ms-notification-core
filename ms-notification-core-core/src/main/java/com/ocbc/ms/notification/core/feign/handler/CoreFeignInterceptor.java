@@ -30,6 +30,7 @@ public class CoreFeignInterceptor implements RequestInterceptor {
             FeignRequestHeader header = objectMapper.readValue(encodedHeader, FeignRequestHeader.class);
             objectNode.set("header", objectMapper.valueToTree(header));
             template.body(objectNode.toString());
+            template.header("X-Request-Header", encodedHeader);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

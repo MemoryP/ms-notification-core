@@ -16,7 +16,6 @@ public class KafkaConsumer {
 
 //    @KafkaListener(topics = "${spring.kafka.consumer.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void listen(String message, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
-//        messageController.messageHand(message, topic);
         messagePkgService.sendMessage(message, topic);
     }
 }

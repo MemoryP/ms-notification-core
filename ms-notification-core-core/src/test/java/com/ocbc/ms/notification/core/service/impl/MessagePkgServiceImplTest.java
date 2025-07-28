@@ -7,6 +7,8 @@ import com.ocbc.ms.cbs.core.exception.BizException;
 import com.ocbc.ms.notification.core.constant.Constants;
 import com.ocbc.ms.notification.core.entity.ServiceCodeTemplateEntity;
 import com.ocbc.ms.notification.core.entity.dto.ConsumerDto;
+import com.ocbc.ms.notification.core.entity.dto.CustomerMessageDto;
+import com.ocbc.ms.notification.core.feign.client.MsCustomerClient;
 import com.ocbc.ms.notification.core.producer.LocalKafkaProducer;
 import com.ocbc.ms.notification.core.repository.ServiceCodeTemplateRepository;
 import com.ocbc.ms.notification.core.runner.TopicRunner;
@@ -34,6 +36,12 @@ class MessagePkgServiceImplTest {
     private ServiceCodeTemplateRepository serviceCodeTemplateRepository;
 
     @Mock
+    private TbMessageProducerRegServiceImpl tbMessageProducerRegServiceImpl;
+
+    @Mock
+    private MsCustomerClient msCustomerClient;
+
+    @Mock
     private LocalKafkaProducer localKafkaProducer;
 
     @Mock
@@ -57,15 +65,22 @@ class MessagePkgServiceImplTest {
         ConsumerDto consumerDto = new ConsumerDto();
         consumerDto.setLegalEntity(testLegalEntity);
         consumerDto.setServiceCode(testServiceCode);
+        consumerDto.setMessage("{\"customerId\": \"1\",\"customerName\": \"1\"}");
+
+        CustomerMessageDto customerMessageDto = new CustomerMessageDto();
+        customerMessageDto.setCustomerId("1");
+        customerMessageDto.setCustomerName("1");
 
         ServiceCodeTemplateEntity template = new ServiceCodeTemplateEntity();
         template.setAlterTemplateCode("ALTER_CODE");
 
-        when(objectMapper.readValue(messageJson, ConsumerDto.class)).thenReturn(consumerDto);
+        when(objectMapper.readValue(eq(messageJson), eq(ConsumerDto.class))).thenReturn(consumerDto);
         when(tbMessageConsumerRegService.saveTbMessageConsumerReg(consumerDto)).thenReturn(testConsumerId);
         when(serviceCodeTemplateRepository.findById(testServiceCode)).thenReturn(Optional.of(template));
         when(objectMapper.valueToTree(any())).thenReturn(mock(JsonNode.class));
         when(objectMapper.writeValueAsString(any())).thenReturn("serialized-json");
+        when(msCustomerClient.getCustomerInfo(any(), any())).thenReturn("");
+        when(objectMapper.readValue(eq(consumerDto.getMessage()), eq(CustomerMessageDto.class))).thenReturn(customerMessageDto);
 
         messagePkgService.sendMessage(messageJson, TopicRunner.getTopicName(Constants.TOPIC_STAFF));
 
@@ -113,7 +128,7 @@ class MessagePkgServiceImplTest {
         when(objectMapper.readValue(invalidJson, ConsumerDto.class))
                 .thenThrow(new JsonProcessingException("Invalid JSON") {});
 
-        BizException exception = assertThrows(BizException.class, () ->
+        assertThrows(BizException.class, () ->
                 messagePkgService.sendMessage(invalidJson, TopicRunner.getTopicName(Constants.TOPIC_STAFF)));
     }
 

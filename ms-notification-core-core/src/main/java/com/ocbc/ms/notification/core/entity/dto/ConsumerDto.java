@@ -23,7 +23,7 @@ public class ConsumerDto implements Serializable {
     private String messageType;
     private String custCategory;
     private String custId;
-    private String messagedd;
+    private String messageId;
     private String message;
     private String xCorrelationId;
     private String xSourceId;

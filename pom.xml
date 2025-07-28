@@ -50,10 +50,6 @@
             **/utils/**,
             **/runner/**,
             **/spi/**,
-            **/JwtEncryptionService.java,
-            **/TbMessageConditionDefServiceImpl.java,
-            **/TbMessageConsumerRegServiceImpl.java,
-            **/TbMessageProducerRegServiceImpl.java,
             **/Application.java,
         </sonar.exclusions>
         <sonar.coverage.exclusions>
@@ -73,10 +69,6 @@
             **/utils/**,
             **/runner/**,
             **/spi/**,
-            **/JwtEncryptionService.java,
-            **/TbMessageConditionDefServiceImpl.java,
-            **/TbMessageConsumerRegServiceImpl.java,
-            **/TbMessageProducerRegServiceImpl.java,
             **/Application.java,
         </sonar.coverage.exclusions>
     </properties>
